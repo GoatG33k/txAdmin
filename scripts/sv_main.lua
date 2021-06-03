@@ -6,7 +6,7 @@ function logError(x)
     print("^5[txAdminClient]^1 " .. x .. "^0")
 end
 function unDeQuote(x)
-    local new, count = string.gsub(x, utf8.char(65282), '"')
+    local new = string.gsub(x, utf8.char(65282), '"')
     return new
 end
 
@@ -81,7 +81,7 @@ function HTTPHeartBeat()
         txAdminToken = apiToken,
         players = curPlyData
     }
-    PerformHttpRequest(url, function(httpCode, data, resultHeaders)
+    PerformHttpRequest(url, function(httpCode, data)
         local resp = tostring(data)
         if httpCode ~= 200 then
             hbReturnData = "HeartBeat failed with code "..httpCode.." and message: "..resp
@@ -107,13 +107,13 @@ function handleHttp(req, res)
 end
 
 -- Ping!
-function txaPing(source, args)
+function txaPing()
     log("Pong!")
     CancelEvent()
 end
 
 -- Warn specific player via server ID
-function txaWarnID(source, args)
+function txaWarnID(_, args)
     if #args == 6 then
         for k,v in pairs(args) do
             args[k] = unDeQuote(v)
@@ -133,7 +133,7 @@ function txaWarnID(source, args)
 end
 
 -- Kick all players
-function txaKickAll(source, args)
+function txaKickAll(_, args)
     if args[1] == nil then
         args[1] = 'no reason provided'
     else
@@ -147,7 +147,7 @@ function txaKickAll(source, args)
 end
 
 -- Kick specific player via server ID
-function txaKickID(source, args)
+function txaKickID(_, args)
     if #args ~= 2 then
         return logError("Invalid arguments for txaKickID")
     end
@@ -207,7 +207,7 @@ end
 
 -- Fire server event
 -- FIXME: check source to make sure its from the console
-function txaEvent(source, args)
+function txaEvent(_, args)
     if args[1] ~= nil and args[2] ~= nil then
         local eventName = unDeQuote(args[1])
         local eventData = unDeQuote(args[2])
@@ -220,7 +220,7 @@ end
 
 -- Broadcast admin message to all players
 -- TODO: deprecate txaBroadcast, carefull to also show it on the Server Log
-function txaBroadcast(source, args)
+function txaBroadcast(_, args)
     if args[1] ~= nil and args[2] ~= nil then
         args[1] = unDeQuote(args[1])
         args[2] = unDeQuote(args[2])
@@ -240,7 +240,7 @@ function txaBroadcast(source, args)
 end
 
 -- Send admin direct message to specific player
-function txaSendDM(source, args)
+function txaSendDM(_, args)
     if args[1] ~= nil and args[2] ~= nil and args[3] ~= nil then
         args[2] = unDeQuote(args[2])
         args[3] = unDeQuote(args[3])
@@ -265,7 +265,7 @@ function txaSendDM(source, args)
 end
 
 -- Get all resources/statuses and report back to txAdmin
-function txaReportResources(source, args)
+function txaReportResources()
     --Prepare resources list
     local resources = {}
     local max = GetNumResources() - 1
@@ -296,7 +296,7 @@ function txaReportResources(source, args)
         resources = resources
     }
     log('Sending resources list to txAdmin.')
-    PerformHttpRequest(url, function(httpCode, data, resultHeaders)
+    PerformHttpRequest(url, function(httpCode, data)
         local resp = tostring(data)
         if httpCode ~= 200 then
             logError("ReportResources failed with code "..httpCode.." and message: "..resp)
@@ -305,7 +305,7 @@ function txaReportResources(source, args)
 end
 
 -- Player connecting handler
-function handleConnections(name, skr, d)
+function handleConnections(name, _, d)
     local player = source
     if GetConvar("txAdmin-checkPlayerJoin", "invalid") == "true" then
         d.defer()
@@ -319,7 +319,8 @@ function handleConnections(name, skr, d)
             name = name
         }
         if #exData.identifiers <= 1 then
-            d.done("[txAdmin] You do not have at least 1 valid identifier. If you own this server, make sure sv_lan is disabled in your server.cfg")
+            d.done("[txAdmin] You do not have at least 1 valid identifier. " ..
+              "If you own this server, make sure sv_lan is disabled in your server.cfg")
             return
         end
 
@@ -331,7 +332,7 @@ function handleConnections(name, skr, d)
             while isDone == false and attempts < 10 do
                 attempts = attempts + 1
                 d.update("[txAdmin] Checking banlist/whitelist... ("..attempts.."/10)")
-                PerformHttpRequest(url, function(httpCode, data, resultHeaders)
+                PerformHttpRequest(url, function(httpCode, data)
                     local resp = tostring(data)
                     if httpCode ~= 200 then
                         logError("[txAdmin] Checking banlist/whitelist failed with code "..httpCode.." and message: "..resp)

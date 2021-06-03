@@ -69,7 +69,7 @@ local function UpdateCamera()
     SetEntityCoords(ped, pos.x, pos.y, pos.z)
     -- Update veh
     local veh = GetVehiclePedIsIn(ped, false)
-    if veh and veh > 0 then 
+    if veh and veh > 0 then
       SetEntityCoords(veh, pos.x, pos.y, pos.z)
     end
   end
