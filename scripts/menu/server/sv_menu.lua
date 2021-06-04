@@ -104,8 +104,8 @@ AddEventHandler('txAdmin:WebPipe', function(callbackId, method, path, headers, b
   if type(method) ~= 'string' or type(path) ~= 'string' or type(body) ~= 'string' then return end
   
   -- Reject large paths as we use regex
-  if #path > 300 then 
-    return sendResponse(s, callbackId, 400, (path):sub(1, 300), "{}", {}) 
+  if #path > 300 then
+    return sendResponse(s, callbackId, 400, (path):sub(1, 300), "{}", {})
   end
   
   -- Reject requests from un-authed players
@@ -180,7 +180,9 @@ AddEventHandler('txAdmin:WebPipe', function(callbackId, method, path, headers, b
   
     -- cache response if it is a static file
     local sub = string.sub
-    if httpCode == 200 and (sub(path, 1, 5) == '/css/' or sub(path, 1, 4) == '/js/' or sub(path, 1, 5) == '/img/' or sub(path, 1, 7) == '/fonts/') then
+    if httpCode == 200 and
+      (sub(path, 1, 5) == '/css/' or sub(path, 1, 4) == '/js/' or
+        sub(path, 1, 5) == '/img/' or sub(path, 1, 7) == '/fonts/') then
       -- remove query params from path, so people can't consume memory by spamming cache-busters
       for safePath in path:gmatch("([^?]+)") do
         local slimHeaders = {}
@@ -424,7 +426,7 @@ RegisterServerEvent('txAdmin:menu:spawnVehicle', function(model, isAutomobile)
     local heading = GetEntityHeading(ped)
     local veh
     if isAutomobile then
-      coords = vec4(coords[1], coords[2], coords[3], heading) 
+      coords = vec4(coords[1], coords[2], coords[3], heading)
       veh = Citizen.InvokeNative(CREATE_AUTOMOBILE, GetHashKey(model), coords);
     else
       veh = CreateVehicle(model, coords[1], coords[2], coords[3], heading, true, true)
